@@ -1,7 +1,7 @@
 /* 文字コードはＳＪＩＳ 改行コードはＣＲＬＦ */
 /* $Id$ */
 /*
- * Ut Video Codec Suite
+ * iM@S MultiColor Keying
  * Copyright (C) 2008  UMEZAWA Takeshi
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  * 
  * 
- * Ut Video Codec Suite
+ * iM@S MultiColor Keying
  * Copyright (C) 2008  梅澤 威志
  * 
  * このプログラムはフリーソフトウェアです。あなたはこれを、フリーソフ
