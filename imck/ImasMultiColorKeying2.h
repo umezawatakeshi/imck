@@ -38,31 +38,29 @@
  * Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA)ÅB
  */
 
-#include "stdafx.h"
-#include "ImasMultiColorKeying.h"
-#include "ImasMultiColorKeying2.h"
+#pragma once
 
+#include <avisynth.h>
 
-#ifdef _MANAGED
-#pragma managed(push, off)
-#endif
-
-BOOL APIENTRY DllMain( HMODULE hModule,
-                       DWORD  ul_reason_for_call,
-                       LPVOID lpReserved
-					 )
+class ImasMultiColorKeying2 :
+	public GenericVideoFilter
 {
-    return TRUE;
-}
+protected:
+	const PClip clip1;
+	const PClip clip2;
 
-#ifdef _MANAGED
-#pragma managed(pop)
-#endif
+	double base1r;
+	double base1g;
+	double base1b;
+	double base2r;
+	double base2g;
+	double base2b;
 
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env)
-{
-	env->AddFunction("ImasMultiColorKeying", "[red1]c[red2]c[red3]c[green1]c[green2]c[green3]c", ImasMultiColorKeying::GetObject, 0);
-	env->AddFunction("ImasMultiColorKeying2", "i[ckip1]c[clip2]c", ImasMultiColorKeying2::GetObject, 0);
+public:
+	static AVSValue __cdecl GetObject(AVSValue args, void *user_data, IScriptEnvironment *env);
+	ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip _clip2, IScriptEnvironment *env);
+	virtual ~ImasMultiColorKeying2();
 
-	return "iM@S MultiColor Keying for AviSynth";
-}
+public:
+	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment *env);
+};

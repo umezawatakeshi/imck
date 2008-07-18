@@ -181,6 +181,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\ImasMultiColorKeying2.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\imck.cpp"
 				>
 			</File>
@@ -212,6 +216,10 @@
 			>
 			<File
 				RelativePath=".\ImasMultiColorKeying.h"
+				>
+			</File>
+			<File
+				RelativePath=".\ImasMultiColorKeying2.h"
 				>
 			</File>
 			<File
