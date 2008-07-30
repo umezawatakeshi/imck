@@ -42,11 +42,11 @@
 
 #include <avisynth.h>
 
-                                   // fmt    RGB-ch  A-ch
-#define IMCK_OUTTYPE_RGBA_NORMAL 0 // RGB32   RGB    Alpha
-#define IMCK_OUTTYPE_RGBA_ALPHA  1 // RGB32    ”’    Alpha
-#define IMCK_OUTTYPE_RGB_NORMAL  2 // RGB24   RGB      -
-#define IMCK_OUTTYPE_RGB_ALPHA   3 // RGB24  Alpha     -
+                                       // fmt    RGB-ch  A-ch
+#define IMCK2_OUTTYPE_RGB32_RGBA      0 // RGB32   RGB    Alpha
+#define IMCK2_OUTTYPE_RGB32_ALPHAONLY 1 // RGB32    ”’    Alpha
+#define IMCK2_OUTTYPE_RGB24_RGBONLY   2 // RGB24   RGB      -
+#define IMCK2_OUTTYPE_RGB24_ALPHAONLY 3 // RGB24  Alpha     -
 
 class ImasMultiColorKeying2 :
 	public GenericVideoFilter

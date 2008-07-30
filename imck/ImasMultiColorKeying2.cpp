@@ -70,7 +70,7 @@ inline T clipval(T a, T _min, T _max)
 
 AVSValue __cdecl ImasMultiColorKeying2::GetObject(AVSValue args, void *user_data, IScriptEnvironment *env)
 {
-	return new ImasMultiColorKeying2(args[0].AsInt(), args[1].AsClip(), args[2].AsClip(), args[3].AsInt(IMCK_OUTTYPE_RGBA_NORMAL), env);  
+	return new ImasMultiColorKeying2(args[0].AsInt(), args[1].AsClip(), args[2].AsClip(), args[3].AsInt(IMCK2_OUTTYPE_RGB32_RGBA), env);  
 }
 
 ImasMultiColorKeying2::ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip _clip2, int _outtype, IScriptEnvironment *env) :
@@ -90,12 +90,12 @@ ImasMultiColorKeying2::ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip 
 
 	switch(outtype)
 	{
-	case IMCK_OUTTYPE_RGBA_NORMAL:
-	case IMCK_OUTTYPE_RGBA_ALPHA:
+	case IMCK2_OUTTYPE_RGB32_RGBA:
+	case IMCK2_OUTTYPE_RGB32_ALPHAONLY:
 		vi.pixel_type = VideoInfo::CS_BGR32;
 		break;
-	case IMCK_OUTTYPE_RGB_NORMAL:
-	case IMCK_OUTTYPE_RGB_ALPHA:
+	case IMCK2_OUTTYPE_RGB24_RGBONLY:
+	case IMCK2_OUTTYPE_RGB24_ALPHAONLY:
 		vi.pixel_type = VideoInfo::CS_BGR24;
 		break;
 	default:
@@ -189,12 +189,12 @@ PVideoFrame __stdcall ImasMultiColorKeying2::GetFrame(int n, IScriptEnvironment 
 
 	switch(outtype)
 	{
-	case IMCK_OUTTYPE_RGBA_NORMAL:
-	case IMCK_OUTTYPE_RGBA_ALPHA:
+	case IMCK2_OUTTYPE_RGB32_RGBA:
+	case IMCK2_OUTTYPE_RGB32_ALPHAONLY:
 		bypp = 4;
 		break;
-	case IMCK_OUTTYPE_RGB_NORMAL:
-	case IMCK_OUTTYPE_RGB_ALPHA:
+	case IMCK2_OUTTYPE_RGB24_RGBONLY:
+	case IMCK2_OUTTYPE_RGB24_ALPHAONLY:
 		bypp = 3;
 		break;
 	}
@@ -228,21 +228,21 @@ PVideoFrame __stdcall ImasMultiColorKeying2::GetFrame(int n, IScriptEnvironment 
 
 		switch(outtype)
 		{
-		case IMCK_OUTTYPE_RGBA_NORMAL:
+		case IMCK2_OUTTYPE_RGB32_RGBA:
 			*(AS_RGBA *)p = rgba;
 			break;
-		case IMCK_OUTTYPE_RGBA_ALPHA:
+		case IMCK2_OUTTYPE_RGB32_ALPHAONLY:
 			rgba.b = 255;
 			rgba.g = 255;
 			rgba.r = 255;
 			*(AS_RGBA *)p = rgba;
 			break;
-		case IMCK_OUTTYPE_RGB_NORMAL:
+		case IMCK2_OUTTYPE_RGB24_RGBONLY:
 			((AS_RGB *)p)->b = rgba.b;
 			((AS_RGB *)p)->g = rgba.g;
 			((AS_RGB *)p)->r = rgba.r;
 			break;
-		case IMCK_OUTTYPE_RGB_ALPHA:
+		case IMCK2_OUTTYPE_RGB24_ALPHAONLY:
 			((AS_RGB *)p)->b = rgba.a;
 			((AS_RGB *)p)->g = rgba.a;
 			((AS_RGB *)p)->r = rgba.a;
