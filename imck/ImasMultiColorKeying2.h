@@ -42,12 +42,19 @@
 
 #include <avisynth.h>
 
+                                   // fmt    RGB-ch  A-ch
+#define IMCK_OUTTYPE_RGBA_NORMAL 0 // RGB32   RGB    Alpha
+#define IMCK_OUTTYPE_RGBA_ALPHA  1 // RGB32    ”’    Alpha
+#define IMCK_OUTTYPE_RGB_NORMAL  2 // RGB24   RGB      -
+#define IMCK_OUTTYPE_RGB_ALPHA   3 // RGB24  Alpha     -
+
 class ImasMultiColorKeying2 :
 	public GenericVideoFilter
 {
 protected:
 	const PClip clip1;
 	const PClip clip2;
+	const int outtype;
 
 	double base1r;
 	double base1g;
@@ -58,7 +65,7 @@ protected:
 
 public:
 	static AVSValue __cdecl GetObject(AVSValue args, void *user_data, IScriptEnvironment *env);
-	ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip _clip2, IScriptEnvironment *env);
+	ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip _clip2, int _outtype, IScriptEnvironment *env);
 	virtual ~ImasMultiColorKeying2();
 
 public:

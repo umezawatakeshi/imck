@@ -59,10 +59,17 @@ BOOL APIENTRY DllMain( HMODULE hModule,
 #pragma managed(pop)
 #endif
 
+#define SET_GLOBAL_DEFINE(x) SetGlobalVar(#x, AVSValue(x))
+
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env)
 {
 	env->AddFunction("ImasMultiColorKeying", "[red1]c[red2]c[red3]c[green1]c[green2]c[green3]c", ImasMultiColorKeying::GetObject, 0);
-	env->AddFunction("ImasMultiColorKeying2", "i[ckip1]c[clip2]c", ImasMultiColorKeying2::GetObject, 0);
+	env->AddFunction("ImasMultiColorKeying2", "i[ckip1]c[clip2]c[outtype]i", ImasMultiColorKeying2::GetObject, 0);
+
+	env->SET_GLOBAL_DEFINE(IMCK_OUTTYPE_RGBA_NORMAL);
+	env->SET_GLOBAL_DEFINE(IMCK_OUTTYPE_RGBA_ALPHA);
+	env->SET_GLOBAL_DEFINE(IMCK_OUTTYPE_RGB_NORMAL);
+	env->SET_GLOBAL_DEFINE(IMCK_OUTTYPE_RGB_ALPHA);
 
 	return "iM@S MultiColor Keying for AviSynth";
 }
