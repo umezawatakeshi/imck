@@ -64,7 +64,7 @@ Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA)。</p>
 <p>異なる 2 色バックを入力し、アルファチャネルを持ったキャラの映像を出力します。ImasMultiColorKeying と比べると、偽色や偽アルファはだいぶ減っていますが、エッジの抜き精度は若干下がっているようです（ただし、H.264 なり VP6 なりにエンコードするとエッジの精度の差はほとんど分からなくなります）。また、入力するクリップが少ないため、HDD アクセスが少なくなった結果として処理速度も向上しています。</p>
 <blockquote><pre>LoadPlugin("imck.dll")
 
-clip1 = AviSource("red.avi", pixel_type = "RGB24")
+clip1 = AviSource("gray.avi", pixel_type = "RGB24")
 clip2 = AviSource("green.avi", pixel_type = "RGB24")
 
 ImasMultiColorKeying2(300, clip1, clip2, outtype = IMCK2_OUTTYPE_RGB32_RGBA)</pre></blockquote>
