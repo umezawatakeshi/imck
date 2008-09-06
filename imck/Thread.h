@@ -1,7 +1,7 @@
 /* 文字コードはＳＪＩＳ 改行コードはＣＲＬＦ */
 /* $Id$ */
 /*
- * iM@S MultiColor Keying
+ * Ut Video Codec Suite
  * Copyright (C) 2008  UMEZAWA Takeshi
  * 
  * This program is free software; you can redistribute it and/or modify
@@ -19,7 +19,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
  * 
  * 
- * iM@S MultiColor Keying
+ * Ut Video Codec Suite
  * Copyright (C) 2008  梅澤 威志
  * 
  * このプログラムはフリーソフトウェアです。あなたはこれを、フリーソフ
@@ -40,30 +40,51 @@
 
 #pragma once
 
-// 下で指定された定義の前に対象プラットフォームを指定しなければならない場合、以下の定義を変更してください。
-// 異なるプラットフォームに対応する値に関する最新情報については、MSDN を参照してください。
-#ifndef WINVER				// Windows XP 以降のバージョンに固有の機能の使用を許可します。
-#define WINVER 0x0501		// これを Windows の他のバージョン向けに適切な値に変更してください。
-#endif
+class CThreadManager;
 
-#ifndef _WIN32_WINNT		// Windows XP 以降のバージョンに固有の機能の使用を許可します。                   
-#define _WIN32_WINNT 0x0501	// これを Windows の他のバージョン向けに適切な値に変更してください。
-#endif						
+class CThreadJob
+{
+	friend class CThreadManager;
 
-#ifndef _WIN32_WINDOWS		// Windows 98 以降のバージョンに固有の機能の使用を許可します。
-#define _WIN32_WINDOWS 0x0410 // これを Windows Me またはそれ以降のバージョン向けに適切な値に変更してください。
-#endif
+private:
+	HANDLE m_hCompletionEvent;
 
-#ifndef _WIN32_IE			// IE 6.0 以降のバージョンに固有の機能の使用を許可します。
-#define _WIN32_IE 0x0600	// これを IE. の他のバージョン向けに適切な値に変更してください。
-#endif
+public:
+	CThreadJob(void);
+	virtual ~CThreadJob(void) = 0;
 
-#define WIN32_LEAN_AND_MEAN		// Windows ヘッダーから使用されていない部分を除外します。
-// Windows ヘッダー ファイル:
-#include <windows.h>
+public:
+	virtual void JobProc(CThreadManager *pManager) = 0;
+};
 
-#include <math.h>
+class CThreadManager
+{
+private:
+	static const int MAX_THREAD = 32;
+	static const int MAX_JOB = 256;
 
-#include <queue>
-#include <algorithm>
-using namespace std;
+private:
+	int m_nNumThreads;
+	int m_nNumJobs;
+	HANDLE m_hThread[MAX_THREAD];
+	DWORD m_dwThreadId[MAX_THREAD];
+	HANDLE m_hThreadSemaphore[MAX_THREAD];
+	queue<CThreadJob *> m_queueJob[MAX_THREAD];
+	CRITICAL_SECTION m_csJob;
+	HANDLE m_hCompletionEvent[MAX_JOB];
+
+public:
+	static int GetNumProcessors(void);
+
+public:
+	CThreadManager(void);
+	~CThreadManager(void);
+
+private:
+	static DWORD WINAPI StaticThreadProc(LPVOID lpParameter);
+	DWORD ThreadProc(int nThreadIndex);
+
+public:
+	void SubmitJob(CThreadJob *pJob, DWORD dwAffinityHint);
+	void WaitForJobCompletion(void);
+};
