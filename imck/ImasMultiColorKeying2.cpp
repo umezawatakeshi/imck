@@ -93,14 +93,18 @@ ImasMultiColorKeying2::ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip 
 	case IMCK2_OUTTYPE_RGB32_RGBA:
 	case IMCK2_OUTTYPE_RGB32_ALPHAONLY:
 		vi.pixel_type = VideoInfo::CS_BGR32;
+		m_bypp = 4;
 		break;
 	case IMCK2_OUTTYPE_RGB24_RGBONLY:
 	case IMCK2_OUTTYPE_RGB24_ALPHAONLY:
 		vi.pixel_type = VideoInfo::CS_BGR24;
+		m_bypp = 3;
 		break;
 	default:
 		env->ThrowError("ImasMultiColorKeying2: Argument 'outtype' invalid");
 	}
+
+	m_nDivideCount = CThreadManager::GetNumProcessors();
 
 	frame1 = clip1->GetFrame(_framepos, env);
 	frame2 = clip2->GetFrame(_framepos, env);
@@ -168,10 +172,13 @@ ImasMultiColorKeying2::ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip 
 	base2r /= 256.0;
 	base2g /= 256.0;
 	base2b /= 256.0;
+
+	m_ptm = new CThreadManager();
 }
 
 ImasMultiColorKeying2::~ImasMultiColorKeying2()
 {
+	delete m_ptm;
 }
 
 PVideoFrame __stdcall ImasMultiColorKeying2::GetFrame(int n, IScriptEnvironment *env)
@@ -180,26 +187,32 @@ PVideoFrame __stdcall ImasMultiColorKeying2::GetFrame(int n, IScriptEnvironment 
 	PVideoFrame frame2     = clip2->GetFrame(n, env);
 	PVideoFrame frame_result = env->NewVideoFrame(vi);
 
-	const AS_RGB *ptr1 = (const AS_RGB *)frame1->GetReadPtr();
-	const AS_RGB *ptr2 = (const AS_RGB *)frame2->GetReadPtr();
-	BYTE *ptr_start    = frame_result->GetWritePtr();
-	BYTE *ptr_end      = ptr_start + frame_result->GetHeight() * frame_result->GetPitch();
+	m_pSrc1Begin = frame1->GetReadPtr();
+	m_pSrc2Begin = frame2->GetReadPtr();
+	m_pDstBegin  = frame_result->GetWritePtr();
+	m_pDstEnd    = m_pDstBegin + frame_result->GetHeight() * frame_result->GetPitch();
+
+	for (int i = 0; i < m_nDivideCount; i++)
+		m_ptm->SubmitJob(new CFilterJob(this, i), i);
+	m_ptm->WaitForJobCompletion();
+
+	return frame_result;
+}
+
+void ImasMultiColorKeying2::FilterProc(DWORD nIndex)
+{
+	DWORD nPixels;
 	AS_RGBA rgba;
-	int bypp = 1;
 
-	switch(outtype)
-	{
-	case IMCK2_OUTTYPE_RGB32_RGBA:
-	case IMCK2_OUTTYPE_RGB32_ALPHAONLY:
-		bypp = 4;
-		break;
-	case IMCK2_OUTTYPE_RGB24_RGBONLY:
-	case IMCK2_OUTTYPE_RGB24_ALPHAONLY:
-		bypp = 3;
-		break;
-	}
+	nPixels = (m_pDstEnd - m_pDstBegin) / m_bypp;
 
-	for (BYTE *p = ptr_start; p < ptr_end; p += bypp)
+	BYTE *pDstBegin = m_pDstBegin  + (nPixels *  nIndex      / m_nDivideCount) * m_bypp;
+	BYTE *pDstEnd   = m_pDstBegin  + (nPixels * (nIndex + 1) / m_nDivideCount) * m_bypp;
+
+	const AS_RGB *ptr1 = (const AS_RGB *)(m_pSrc1Begin) + nPixels * nIndex / m_nDivideCount;
+	const AS_RGB *ptr2 = (const AS_RGB *)(m_pSrc2Begin) + nPixels * nIndex / m_nDivideCount;
+
+	for (BYTE *p = pDstBegin; p < pDstEnd; p += m_bypp)
 	{
 		double a = 0.0;
 
@@ -252,6 +265,4 @@ PVideoFrame __stdcall ImasMultiColorKeying2::GetFrame(int n, IScriptEnvironment 
 		ptr1++;
 		ptr2++;
 	}
-
-	return frame_result;
 }

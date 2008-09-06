@@ -41,8 +41,8 @@
 #pragma once
 
 #include <avisynth.h>
-
-                                       // fmt    RGB-ch  A-ch
+#include "Thread.h"
+                                        // fmt    RGB-ch  A-ch
 #define IMCK2_OUTTYPE_RGB32_RGBA      0 // RGB32   RGB    Alpha
 #define IMCK2_OUTTYPE_RGB32_ALPHAONLY 1 // RGB32    ”’    Alpha
 #define IMCK2_OUTTYPE_RGB24_RGBONLY   2 // RGB24   RGB      -
@@ -63,6 +63,16 @@ protected:
 	double base2g;
 	double base2b;
 
+	CThreadManager *m_ptm;
+
+	int m_bypp;
+	int m_nDivideCount;
+
+	BYTE *m_pDstBegin;
+	BYTE *m_pDstEnd;
+	const BYTE *m_pSrc1Begin;
+	const BYTE *m_pSrc2Begin;
+
 public:
 	static AVSValue __cdecl GetObject(AVSValue args, void *user_data, IScriptEnvironment *env);
 	ImasMultiColorKeying2(int _framepos, PClip _clip1, PClip _clip2, int _outtype, IScriptEnvironment *env);
@@ -70,4 +80,21 @@ public:
 
 public:
 	PVideoFrame __stdcall GetFrame(int n, IScriptEnvironment *env);
+
+private:
+	void FilterProc(DWORD nIndex);
+	class CFilterJob : public CThreadJob
+	{
+	private:
+		const DWORD m_nIndex;
+		ImasMultiColorKeying2 *const m_pFilter;
+	public:
+		CFilterJob(ImasMultiColorKeying2 *pFilter, DWORD nIndex) : m_pFilter(pFilter), m_nIndex(nIndex)
+		{
+		}
+		void JobProc(CThreadManager *)
+		{
+			m_pFilter->FilterProc(m_nIndex);
+		}
+	};
 };
