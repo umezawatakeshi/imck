@@ -214,18 +214,20 @@ void ImasMultiColorKeying2::FilterProc(DWORD nIndex)
 
 	for (BYTE *p = pDstBegin; p < pDstEnd; p += m_bypp)
 	{
+		double rev_a = 1.0;
 		double a = 0.0;
 
 		if (fabs(base1b - base2b) >= 32.0)
-			a = max(a, 1.0 - ((int)ptr1->b - (int)ptr2->b) / (base1b - base2b));
+			rev_a = min(rev_a, ((int)ptr1->b - (int)ptr2->b) / (base1b - base2b));
 
 		if (fabs(base1g - base2g) >= 32.0)
-			a = max(a, 1.0 - ((int)ptr1->g - (int)ptr2->g) / (base1g - base2g));
+			rev_a = min(rev_a, ((int)ptr1->g - (int)ptr2->g) / (base1g - base2g));
 
 		if (fabs(base1r - base2r) >= 32.0)
-			a = max(a, 1.0 - ((int)ptr1->r - (int)ptr2->r) / (base1r - base2r));
+			rev_a = min(rev_a, ((int)ptr1->r - (int)ptr2->r) / (base1r - base2r));
 
-		a = clipval(a, 0.0, 1.0);
+		rev_a = clipval(rev_a, 0.0, 1.0);
+		a = 1.0 - rev_a;
 
 		if (a == 0.0) {
 			rgba.b = 0;
@@ -233,9 +235,9 @@ void ImasMultiColorKeying2::FilterProc(DWORD nIndex)
 			rgba.r = 0;
 			rgba.a = 0;
 		} else {
-			rgba.b = (BYTE)clipval((ptr1->b - base1b * (1.0 - a)) / a, 0.0, 255.9);
-			rgba.g = (BYTE)clipval((ptr1->g - base1g * (1.0 - a)) / a, 0.0, 255.9);
-			rgba.r = (BYTE)clipval((ptr1->r - base1r * (1.0 - a)) / a, 0.0, 255.9);
+			rgba.b = (BYTE)clipval((ptr1->b - base1b * rev_a) / a, 0.0, 255.9);
+			rgba.g = (BYTE)clipval((ptr1->g - base1g * rev_a) / a, 0.0, 255.9);
+			rgba.r = (BYTE)clipval((ptr1->r - base1r * rev_a) / a, 0.0, 255.9);
 			rgba.a = (BYTE)(a*255);
 		}
 
