@@ -212,33 +212,53 @@ void ImasMultiColorKeying2::FilterProc(DWORD nIndex)
 	const AS_RGB *ptr1 = (const AS_RGB *)(m_pSrc1Begin) + nPixels * nIndex / m_nDivideCount;
 	const AS_RGB *ptr2 = (const AS_RGB *)(m_pSrc2Begin) + nPixels * nIndex / m_nDivideCount;
 
+	double diff_b = fabs(base1b - base2b);
+	double diff_r = fabs(base1r - base2r);
+	double diff_g = fabs(base1g - base2g);
+
+	int idiffm_b;
+	int idiffm_g;
+	int idiffm_r;
+
+	if (diff_b >= 32.0)
+		idiffm_b = 0x20000 / (base1b - base2b);
+	if (diff_g >= 32.0)
+		idiffm_g = 0x20000 / (base1g - base2g);
+	if (diff_r >= 32.0)
+		idiffm_r = 0x20000 / (base1r - base2r);
+
+	int ibase1b = base1b;
+	int ibase1g = base1g;
+	int ibase1r = base1r;
+
 	for (BYTE *p = pDstBegin; p < pDstEnd; p += m_bypp)
 	{
-		double rev_a = 1.0;
-		double a = 0.0;
+		int irev_a = 0xff;
+		int ia;
 
-		if (fabs(base1b - base2b) >= 32.0)
-			rev_a = min(rev_a, ((int)ptr1->b - (int)ptr2->b) / (base1b - base2b));
+		if (diff_b >= 32.0)
+			irev_a = min(irev_a, ((((int)ptr1->b - (int)ptr2->b) << 7) * idiffm_b) >> 16);
 
-		if (fabs(base1g - base2g) >= 32.0)
-			rev_a = min(rev_a, ((int)ptr1->g - (int)ptr2->g) / (base1g - base2g));
+		if (diff_g >= 32.0)
+			irev_a = min(irev_a, ((((int)ptr1->g - (int)ptr2->g) << 7) * idiffm_g) >> 16);
 
-		if (fabs(base1r - base2r) >= 32.0)
-			rev_a = min(rev_a, ((int)ptr1->r - (int)ptr2->r) / (base1r - base2r));
+		if (diff_r >= 32.0)
+			irev_a = min(irev_a, ((((int)ptr1->r - (int)ptr2->r) << 7) * idiffm_r) >> 16);
 
-		rev_a = clipval(rev_a, 0.0, 1.0);
-		a = 1.0 - rev_a;
+		irev_a = clipval(irev_a, 0, 0xff);
+		ia = 255 - irev_a;
 
-		if (a == 0.0) {
+		if (ia < 2) {
 			rgba.b = 0;
 			rgba.g = 0;
 			rgba.r = 0;
 			rgba.a = 0;
 		} else {
-			rgba.b = (BYTE)clipval((ptr1->b - base1b * rev_a) / a, 0.0, 255.9);
-			rgba.g = (BYTE)clipval((ptr1->g - base1g * rev_a) / a, 0.0, 255.9);
-			rgba.r = (BYTE)clipval((ptr1->r - base1r * rev_a) / a, 0.0, 255.9);
-			rgba.a = (BYTE)(a*255);
+			int im_a = 0x10100 / ia;
+			rgba.b = (BYTE)clipval((max(ptr1->b * 255 - ibase1b * irev_a, 0) * im_a) >> 16, 0, 255);
+			rgba.g = (BYTE)clipval((max(ptr1->g * 255 - ibase1g * irev_a, 0) * im_a) >> 16, 0, 255);
+			rgba.r = (BYTE)clipval((max(ptr1->r * 255 - ibase1r * irev_a, 0) * im_a) >> 16, 0, 255);
+			rgba.a = (BYTE)ia;
 		}
 
 		switch(outtype)
